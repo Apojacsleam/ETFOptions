@@ -126,19 +126,6 @@ python FactorGenerate/13_portfolio_construction.py
 
 ---
 
-## 时序与数据质量注意事项（强烈建议）
-
-- 严格避免未来信息泄露：
-  - 标的层因子：对每个样本 `(etf, month)` 的多期统计以“该月最后交易日”为窗尾，仅回溯历史数据；
-  - 切分：`predict_data.month > train_data.month.max()`，并避免同月样本同时出现在训练与预测。
-- 交叉验证：使用 `TimeSeriesSplit` 替代普通 `KFold`/`cv=5`。
-- 列缩放：对 `max == min` 的列避免除零，统一置 0 或跳过缩放；缩放后再次 `fillna(0)`。
-- 列集合与顺序：训练/预测严格按同一列序对齐并断言一致；数据类型显式为 `float64`。
-- 特征工程：对 ETF 与月份的哑变量去基，避免完全共线，便于线性模型稳健估计。
-- 模型选择：`GaussianRBM` 不适配回归任务，建议移除或替换为更合适的降维/非线性方法。
-
----
-
 ## 结果与产出文件（部分）
 
 - `Result/00_excess_return.pkl`：月度超额收益与相关标签
@@ -150,21 +137,6 @@ python FactorGenerate/13_portfolio_construction.py
 - `Result/06_train_result.pkl`：各模型滚动预测结果
 - `Result/Rsquare_OS.xlsx`、`Result/figures/Rsquare_OS.pdf`：R^2 结果
 - `Result/metrics_*.xlsx`、`Result/figures/portofolio_*.jpg`：策略绩效与净值图
-
----
-
-## FAQ
-
-1) 缺失 `05_train_data_split*.pkl` 怎么办？
-- 需要在 `Result/04_final_df.pkl` 基础上，按时间滚动生成若干字典项：`{'month', 'label', 'train_data', 'predict_data'}`，并序列化保存。
-
-2) 如何确认未泄露？
-- 抽查若干样本 `(etf, month)`，验证用于特征统计的 `etf_df_all['日期'].max()` 等于该月最后交易日；
-- 验证 `predict_data.month > train_data.month.max()`；
-- 在训练前后打印列集合与顺序一致性。
-
-3) 如何更换标的或时间范围？
-- 修改 `FactorGenerate/config.py` 中的 `UNDERLYING_ASSET_LIST` 与 `END_MONTH`。
 
 ---
 
